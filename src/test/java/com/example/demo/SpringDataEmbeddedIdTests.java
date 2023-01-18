@@ -36,7 +36,7 @@ class SpringDataEmbeddedIdTests {
 
     @Test
     @Transactional
-    void embeddedIdIsOkWithTransactional() {
+    void embeddedIdWithTransactional() {
         CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);
@@ -58,7 +58,7 @@ class SpringDataEmbeddedIdTests {
     }
 
     @Test
-    void embeddedIdIsOkWithoutTransactional() {
+    void embeddedIdWithoutTransactional() {
         CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);

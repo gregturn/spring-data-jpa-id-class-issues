@@ -37,7 +37,7 @@ class SpringDataIdClassTests {
 
     @Test
     @Transactional
-    void idClassWorksWithTransactional() {
+    void idClassWithTransactional() {
         CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);
@@ -62,7 +62,7 @@ class SpringDataIdClassTests {
     }
 
     @Test
-    void idClassFailsWithoutTransactional() {
+    void idClassWithoutTransactional() {
         CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);
