@@ -15,7 +15,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
-@Transactional
 class SpringDataIdClassTests {
 
     @Container
@@ -37,7 +36,33 @@ class SpringDataIdClassTests {
     CustomerWithIdClassRepository repositoryIdClassVersion;
 
     @Test
-    void idClassFails() {
+    @Transactional
+    void idClassWorksWithTransactional() {
+        CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
+        customer.setVersionId(123L);
+        customer.setUnitId(456L);
+
+        repositoryIdClassVersion.save(customer);//save object of base class, ok
+
+        customer.setFirstName("a2");
+        repositoryIdClassVersion.save(customer);//modify object of base class and save again, ok
+
+        VipCustomerWithIdClass vipCustomer = new VipCustomerWithIdClass("a", "b", "888");
+        vipCustomer.setVersionId(987L);
+        vipCustomer.setUnitId(654L);
+
+        repositoryIdClassVersion.save(vipCustomer);//save object of subclass, ok
+
+        vipCustomer.setVipNumber("999");
+        repositoryIdClassVersion.save(vipCustomer);//modify object of subclass and save again, NOT OK
+        // ↑ THIS FAILS BECAUSE OF PRIMARY KEY CONFLICT. INSERT STATEMENT WAS USED INSTEAD OF UPDATE, WHY?
+        // this failure only happens when:
+        // 1. base class uses IdClass for composite primary key
+        // 2. saving an instance of the subclass for the second time after modification
+    }
+
+    @Test
+    void idClassFailsWithoutTransactional() {
         CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);

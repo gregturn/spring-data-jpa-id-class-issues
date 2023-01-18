@@ -15,7 +15,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
-@Transactional
 class SpringDataEmbeddedIdTests {
 
     @Container
@@ -36,7 +35,30 @@ class SpringDataEmbeddedIdTests {
     CustomerWithEmbedIdRepository repositoryEmbedIdVersion;
 
     @Test
-    void embeddedIdIsOk() {
+    @Transactional
+    void embeddedIdIsOkWithTransactional() {
+        CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
+        customer.setVersionId(123L);
+        customer.setUnitId(456L);
+
+        repositoryEmbedIdVersion.save(customer); //save object of base class, ok
+
+        customer.setFirstName("a2");
+        repositoryEmbedIdVersion.save(customer);//modify object of base class and save again, ok
+
+        VipCustomerWithEmbedId vipCustomer = new VipCustomerWithEmbedId("a", "b", "888");
+        vipCustomer.setVersionId(987L);
+        vipCustomer.setUnitId(654L);
+
+        repositoryEmbedIdVersion.save(vipCustomer); //save object of subclass, ok
+
+        vipCustomer.setVipNumber("999");
+        repositoryEmbedIdVersion.save(vipCustomer);//modify object of subclass and save again, ok
+        // using embedded id annotation, all 4 times of saving to db ok, for both pg and mysql
+    }
+
+    @Test
+    void embeddedIdIsOkWithoutTransactional() {
         CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);

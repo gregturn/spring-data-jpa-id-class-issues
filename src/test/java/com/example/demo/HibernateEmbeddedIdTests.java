@@ -16,7 +16,6 @@ import javax.persistence.EntityManager;
 
 @SpringBootTest
 @Testcontainers
-@Transactional
 class HibernateEmbeddedIdTests {
 
     @Container
@@ -37,7 +36,7 @@ class HibernateEmbeddedIdTests {
     EntityManager entityManager;
 
     @Test
-    void embeddedIdIsOk() {
+    void embeddedIdWithoutTransactional() {
         CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
         customer.setVersionId(123L);
         customer.setUnitId(456L);
@@ -58,4 +57,26 @@ class HibernateEmbeddedIdTests {
         // using embedded id annotation, all 4 times of saving to db ok, for both pg and mysql
     }
 
+    @Test
+    @Transactional
+    void embeddedIdWithTransactional() {
+        CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
+        customer.setVersionId(123L);
+        customer.setUnitId(456L);
+
+        customer = entityManager.merge(customer);  //save object of base class, ok
+
+        customer.setFirstName("a2");
+        customer = entityManager.merge(customer);//modify object of base class and save again, ok
+
+        VipCustomerWithEmbedId vipCustomer = new VipCustomerWithEmbedId("a", "b", "888");
+        vipCustomer.setVersionId(987L);
+        vipCustomer.setUnitId(654L);
+
+        vipCustomer = entityManager.merge(vipCustomer); //save object of subclass, ok
+
+        vipCustomer.setVipNumber("999");
+        vipCustomer = entityManager.merge(vipCustomer);//modify object of subclass and save again, ok
+        // using embedded id annotation, all 4 times of saving to db ok, for both pg and mysql
+    }
 }
