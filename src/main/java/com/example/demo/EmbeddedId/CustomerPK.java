@@ -1,13 +1,13 @@
 package com.example.demo.EmbeddedId;
 
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.Embeddable;
 import java.io.Serializable;
 
-@NoArgsConstructor
-@EqualsAndHashCode
+@Data
 @Embeddable
 public class CustomerPK implements Serializable {
 
@@ -15,11 +15,4 @@ public class CustomerPK implements Serializable {
 
     private Long versionId;
 
-    public void setUnitId(Long unitId) {
-        this.unitId = unitId;
-    }
-
-    public void setVersionId(Long versionId) {
-        this.versionId = versionId;
-    }
 }

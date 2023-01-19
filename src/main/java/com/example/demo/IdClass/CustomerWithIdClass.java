@@ -52,8 +52,16 @@ public class CustomerWithIdClass implements Serializable {
         this.lastName = lastName;
     }
 
+    public Long getVersionId() {
+        return versionId;
+    }
+
     public void setVersionId(Long versionId) {
         this.versionId = versionId;
+    }
+
+    public Long getUnitId() {
+        return unitId;
     }
 
     public void setUnitId(Long unitId) {

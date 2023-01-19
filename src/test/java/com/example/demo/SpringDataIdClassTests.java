@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -35,54 +36,48 @@ class SpringDataIdClassTests {
     @Autowired
     CustomerWithIdClassRepository repositoryIdClassVersion;
 
+    @Autowired
+    TransactionTemplate txTemplate;
+
     @Test
-    @Transactional
-    void idClassWithTransactional() {
-        CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
-        customer.setVersionId(123L);
-        customer.setUnitId(456L);
-
-        repositoryIdClassVersion.save(customer);//save object of base class, ok
-
-        customer.setFirstName("a2");
-        repositoryIdClassVersion.save(customer);//modify object of base class and save again, ok
-
-        VipCustomerWithIdClass vipCustomer = new VipCustomerWithIdClass("a", "b", "888");
-        vipCustomer.setVersionId(987L);
-        vipCustomer.setUnitId(654L);
-
-        repositoryIdClassVersion.save(vipCustomer);//save object of subclass, ok
-
-        vipCustomer.setVipNumber("999");
-        repositoryIdClassVersion.save(vipCustomer);//modify object of subclass and save again, NOT OK
-        // ↑ THIS FAILS BECAUSE OF PRIMARY KEY CONFLICT. INSERT STATEMENT WAS USED INSTEAD OF UPDATE, WHY?
-        // this failure only happens when:
-        // 1. base class uses IdClass for composite primary key
-        // 2. saving an instance of the subclass for the second time after modification
+    void idClassWithoutTransaction() {
+        doStuff();
     }
 
     @Test
-    void idClassWithoutTransactional() {
-        CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
-        customer.setVersionId(123L);
-        customer.setUnitId(456L);
+    void idClassWithTransaction() {
+        txTemplate.execute(status -> doStuff());
+    }
 
-        repositoryIdClassVersion.save(customer);//save object of base class, ok
+    @Test
+    @Transactional
+    void idClassWithTransactional() {
+        doStuff();
+    }
 
-        customer.setFirstName("a2");
-        repositoryIdClassVersion.save(customer);//modify object of base class and save again, ok
+    private VipCustomerWithIdClass doStuff() {
+//        CustomerWithIdClass customer = new CustomerWithIdClass("a", "b");
+//        customer.setVersionId(123L);
+//        customer.setUnitId(456L);
+//
+//        customer = repositoryIdClassVersion.save(customer);//save object of base class, ok
+//
+//        customer.setFirstName("a2");
+//        customer = repositoryIdClassVersion.save(customer);//modify object of base class and save again, ok
 
         VipCustomerWithIdClass vipCustomer = new VipCustomerWithIdClass("a", "b", "888");
         vipCustomer.setVersionId(987L);
         vipCustomer.setUnitId(654L);
 
-        repositoryIdClassVersion.save(vipCustomer);//save object of subclass, ok
+        vipCustomer = repositoryIdClassVersion.save(vipCustomer);//save object of subclass, ok
 
         vipCustomer.setVipNumber("999");
-        repositoryIdClassVersion.save(vipCustomer);//modify object of subclass and save again, NOT OK
+        vipCustomer = repositoryIdClassVersion.save(vipCustomer);//modify object of subclass and save again, NOT OK
         // ↑ THIS FAILS BECAUSE OF PRIMARY KEY CONFLICT. INSERT STATEMENT WAS USED INSTEAD OF UPDATE, WHY?
         // this failure only happens when:
         // 1. base class uses IdClass for composite primary key
         // 2. saving an instance of the subclass for the second time after modification
+
+        return vipCustomer;
     }
 }

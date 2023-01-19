@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -35,39 +35,28 @@ class HibernateEmbeddedIdTests {
     @Autowired
     EntityManager entityManager;
 
+    @Autowired
+    TransactionTemplate txTemplate;
+
     @Test
-    void embeddedIdWithoutTransactional() {
-        CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
-        customer.setVersionId(123L);
-        customer.setUnitId(456L);
-
-        customer = entityManager.merge(customer);  //save object of base class, ok
-
-        customer.setFirstName("a2");
-        customer = entityManager.merge(customer);//modify object of base class and save again, ok
-
-        VipCustomerWithEmbedId vipCustomer = new VipCustomerWithEmbedId("a", "b", "888");
-        vipCustomer.setVersionId(987L);
-        vipCustomer.setUnitId(654L);
-
-        vipCustomer = entityManager.merge(vipCustomer); //save object of subclass, ok
-
-        vipCustomer.setVipNumber("999");
-        vipCustomer = entityManager.merge(vipCustomer);//modify object of subclass and save again, ok
-        // using embedded id annotation, all 4 times of saving to db ok, for both pg and mysql
+    void embeddedIdWithoutTransaction() {
+        doStuff();
     }
 
     @Test
-    @Transactional
-    void embeddedIdWithTransactional() {
-        CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
-        customer.setVersionId(123L);
-        customer.setUnitId(456L);
+    void embeddedIdWithTransaction() {
+        txTemplate.execute(status -> doStuff());
+    }
 
-        customer = entityManager.merge(customer);  //save object of base class, ok
-
-        customer.setFirstName("a2");
-        customer = entityManager.merge(customer);//modify object of base class and save again, ok
+    private VipCustomerWithEmbedId doStuff() {
+//        CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
+//        customer.setVersionId(123L);
+//        customer.setUnitId(456L);
+//
+//        customer = entityManager.merge(customer);  //save object of base class, ok
+//
+//        customer.setFirstName("a2");
+//        customer = entityManager.merge(customer);//modify object of base class and save again, ok
 
         VipCustomerWithEmbedId vipCustomer = new VipCustomerWithEmbedId("a", "b", "888");
         vipCustomer.setVersionId(987L);
@@ -78,5 +67,7 @@ class HibernateEmbeddedIdTests {
         vipCustomer.setVipNumber("999");
         vipCustomer = entityManager.merge(vipCustomer);//modify object of subclass and save again, ok
         // using embedded id annotation, all 4 times of saving to db ok, for both pg and mysql
+
+        return vipCustomer;
     }
 }
