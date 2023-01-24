@@ -2,6 +2,7 @@ package com.example.demo;
 
 import com.example.demo.EmbeddedId.CustomerWithEmbedId;
 import com.example.demo.EmbeddedId.VipCustomerWithEmbedId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +38,15 @@ class HibernateEmbeddedIdTests {
 
     @Autowired
     TransactionTemplate txTemplate;
+
+    @BeforeEach
+    void setup() {
+
+        txTemplate.executeWithoutResult(tx -> {
+            entityManager.createQuery("delete from VipCustomerWithEmbedId").executeUpdate();
+            entityManager.createQuery("delete from VipCustomerWithIdClass").executeUpdate();
+        });
+    }
 
     @Test
     void embeddedIdWithoutTransaction() {
