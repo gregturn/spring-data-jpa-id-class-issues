@@ -1,7 +1,7 @@
 package com.example.demo;
 
-import com.example.demo.EmbeddedId.CustomerWithEmbedId;
 import com.example.demo.EmbeddedId.VipCustomerWithEmbedId;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +13,7 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.persistence.EntityManager;
+import java.util.function.Function;
 
 @SpringBootTest
 @Testcontainers
@@ -38,17 +39,36 @@ class HibernateEmbeddedIdTests {
     @Autowired
     TransactionTemplate txTemplate;
 
+    @BeforeEach
+    void setup() {
+
+        txTemplate.executeWithoutResult(tx -> {
+            entityManager.createQuery("delete from VipCustomerWithEmbedId").executeUpdate();
+            entityManager.createQuery("delete from VipCustomerWithIdClass").executeUpdate();
+        });
+    }
+
     @Test
     void embeddedIdWithoutTransaction() {
-        doStuff();
+        doStuff(entityManager);
+    }
+
+    @Test
+    void embeddedIdWithInnerTransaction() {
+        doStuff(e -> txTemplate.execute(tx -> entityManager.merge(e)));
     }
 
     @Test
     void embeddedIdWithTransaction() {
-        txTemplate.execute(status -> doStuff());
+        txTemplate.execute(status -> doStuff(entityManager));
     }
 
-    private VipCustomerWithEmbedId doStuff() {
+    private VipCustomerWithEmbedId doStuff(EntityManager em) {
+        return doStuff(e -> em.merge(e));
+    }
+
+    private VipCustomerWithEmbedId doStuff(Function<VipCustomerWithEmbedId, VipCustomerWithEmbedId> mergeOperation) {
+
 //        CustomerWithEmbedId customer = new CustomerWithEmbedId("a", "b");
 //        customer.setVersionId(123L);
 //        customer.setUnitId(456L);
@@ -62,10 +82,10 @@ class HibernateEmbeddedIdTests {
         vipCustomer.setVersionId(987L);
         vipCustomer.setUnitId(654L);
 
-        vipCustomer = entityManager.merge(vipCustomer); //save object of subclass, ok
+        vipCustomer = mergeOperation.apply(vipCustomer); //save object of subclass, ok
 
         vipCustomer.setVipNumber("999");
-        vipCustomer = entityManager.merge(vipCustomer);//modify object of subclass and save again, ok
+        vipCustomer = mergeOperation.apply(vipCustomer);//modify object of subclass and save again, ok
         // using embedded id annotation, all 4 times of saving to db ok, for both pg and mysql
 
         return vipCustomer;
