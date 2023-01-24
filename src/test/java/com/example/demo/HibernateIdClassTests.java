@@ -61,6 +61,11 @@ class HibernateIdClassTests {
 	}
 
 	@Test
+	void idClassWithInnerTransaction() {
+		doStuff(e -> txTemplate.execute(tx -> entityManager.merge(e)));
+	}
+
+	@Test
 	void idClassWithHandRolledTransaction() {
 
 		EntityManager em = entityManagerFactory.createEntityManager();

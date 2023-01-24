@@ -46,7 +46,7 @@ class SpringDataEmbeddedIdTests {
 	}
 
 	@Test
-	void embeddedIdWithoutTransaction() {
+	void embeddedIdWithInnerTransaction() {
 		doStuff();
 	}
 

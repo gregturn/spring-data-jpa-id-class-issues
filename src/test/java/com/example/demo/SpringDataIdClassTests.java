@@ -48,7 +48,7 @@ class SpringDataIdClassTests {
 	}
 
 	@Test
-	void idClassWithoutTransaction() {
+	void idClassWithInnerTransaction() {
 		doStuff();
 	}
 
